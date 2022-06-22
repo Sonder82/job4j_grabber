@@ -15,12 +15,9 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 public class AlertRabbit {
 
-    private static Connection connection;
-    private static Properties properties = new Properties();
-
     public static void main(String[] args) {
-        init();
-        try {
+        Properties config = load();
+        try (Connection connection = init(config)) {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDataMap data = new JobDataMap();
@@ -29,7 +26,7 @@ public class AlertRabbit {
                     .usingJobData(data)
                     .build();
             SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(Integer.parseInt(properties.getProperty("rabbit.interval")))
+                    .withIntervalInSeconds(Integer.parseInt(config.getProperty("rabbit.interval")))
                     .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
@@ -39,7 +36,7 @@ public class AlertRabbit {
             Thread.sleep(10000);
             scheduler.shutdown();
             System.out.println(connection);
-        } catch (SchedulerException | InterruptedException e) {
+        } catch (SchedulerException | InterruptedException | ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
@@ -51,7 +48,7 @@ public class AlertRabbit {
         }
 
         @Override
-        public void execute(JobExecutionContext context) throws JobExecutionException {
+        public void execute(JobExecutionContext context) {
             Connection connection = (Connection) context.getJobDetail().getJobDataMap().get("connect");
             try (PreparedStatement statement =
                          connection.prepareStatement("insert into rabbit(created_date) values (?)")) {
@@ -63,18 +60,22 @@ public class AlertRabbit {
         }
     }
 
-    public static void init() {
-        try (InputStream inputStream = AlertRabbit.class.getClassLoader().getResourceAsStream(
-                "rabbit.properties")) {
-            properties.load(inputStream);
-            Class.forName(properties.getProperty("driver-class-name"));
-            connection = DriverManager.getConnection(
-                    properties.getProperty("url"),
-                    properties.getProperty("username"),
-                    properties.getProperty("password"));
-        } catch (IOException | ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
+    public static Connection init(Properties properties) throws ClassNotFoundException, SQLException {
+        Class.forName(properties.getProperty("driver-class-name"));
+        return DriverManager.getConnection(
+                properties.getProperty("url"),
+                properties.getProperty("username"),
+                properties.getProperty("password"));
     }
 
+    private static Properties load() {
+        Properties config = new Properties();
+        try (InputStream inputStream = AlertRabbit.class.getClassLoader().getResourceAsStream(
+                "rabbit.properties")) {
+            config.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return config;
+    }
 }
