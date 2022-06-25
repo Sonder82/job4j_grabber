@@ -6,7 +6,8 @@ import java.time.format.DateTimeFormatter;
 public class HabrCareerDateTimeParser implements DateTimeParser {
     @Override
     public LocalDateTime parse(String parse) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                "yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse(parse, formatter);
         return dateTime;
     }
