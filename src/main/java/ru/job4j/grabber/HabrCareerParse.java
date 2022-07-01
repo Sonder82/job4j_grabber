@@ -21,45 +21,43 @@ public class HabrCareerParse implements Parse {
 
     private static final String PAGE_LINK = String.format("%s/vacancies/java_developer?page=", SOURCE_LINK);
 
+    public static final int PAGE_COUNT = 5;
+
     public HabrCareerParse(DateTimeParser dateTimeParser) {
         this.dateTimeParser = dateTimeParser;
     }
 
     @Override
     public List<Post> list(String link) {
-        final int PAGE_COUNT = 5;
         List<Post> postList = new ArrayList<>();
         for (int page = 1; page <= PAGE_COUNT; page++) {
             try {
-                Connection connection = Jsoup.connect(PAGE_LINK + page);
+                Connection connection = Jsoup.connect(link + page);
                 Document document = connection.get();
                 Elements rows = document.select(".vacancy-card__inner");
                 rows.forEach(row -> {
-                    Element titleElement = row.select(".vacancy-card__inner").first();
-                    Element linkElement = titleElement.child(0);
-                    Element dateTimeElement = row.select(".vacancy-card__date").first();
-                    Element dateElement = dateTimeElement.child(0);
-
                     try {
-                        postList.add(parsePost(titleElement, linkElement, link, dateElement));
+                        postList.add(parsePost(row));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 });
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                throw new IllegalArgumentException();
             }
         }
         return postList;
     }
 
-    private Post parsePost(
-            Element titleElement, Element linkElement, String linkDescription, Element dateElement)
-            throws IOException {
+    private Post parsePost(Element element) throws IOException {
+        Element titleElement = element.select(".vacancy-card__title").first();
+        Element linkElement = titleElement.child(0);
+        Element dateTimeElement = element.select(".vacancy-card__date").first();
+        Element dateElement = dateTimeElement.child(0);
+        String date = dateElement.attr("datetime");
         String vacancyName = titleElement.text();
-        String linkPage = String.format("%s%s", PAGE_LINK, linkElement.attr("href"));
-        String date = String.format("%s", dateElement.attr("datetime"));
-        return new Post(vacancyName, linkPage, retriveDescription(linkDescription), dateTimeParser.parse(date));
+        String linkPage = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+        return new Post(vacancyName, linkPage, retriveDescription(SOURCE_LINK), dateTimeParser.parse(date));
     }
 
     private static String retriveDescription(String link) throws IOException {
