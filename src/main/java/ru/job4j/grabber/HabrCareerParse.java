@@ -27,6 +27,11 @@ public class HabrCareerParse implements Parse {
         this.dateTimeParser = dateTimeParser;
     }
 
+    /**
+     * Метод загружает список всех постов
+     * @param link ссылка
+     * @return список всех постов
+     */
     @Override
     public List<Post> list(String link) {
         List<Post> postList = new ArrayList<>();
@@ -49,6 +54,12 @@ public class HabrCareerParse implements Parse {
         return postList;
     }
 
+    /**
+     * Метод принимает на вход Element страницы для дальнейшего парсинга.
+     * @param element element страницы
+     * @return объект класса Post
+     * @throws IOException исключение
+     */
     private Post parsePost(Element element) throws IOException {
         Element titleElement = element.select(".vacancy-card__title").first();
         Element linkElement = titleElement.child(0);
@@ -57,13 +68,19 @@ public class HabrCareerParse implements Parse {
         String date = dateElement.attr("datetime");
         String vacancyName = titleElement.text();
         String linkPage = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-        return new Post(vacancyName, linkPage, retriveDescription(SOURCE_LINK), dateTimeParser.parse(date));
+        return new Post(vacancyName, linkPage, retriveDescription(linkPage), dateTimeParser.parse(date));
     }
 
+    /**
+     * Метод принимает на вход ссылку описания вакансии
+     * @param link ссылка описания вакансии
+     * @return строку с описанием вакансии
+     * @throws IOException исключение
+     */
     private static String retriveDescription(String link) throws IOException {
         Connection connection = Jsoup.connect(link);
         Document document = connection.get();
-        return document.select(".job_show_description__body").text();
+        return document.select(".style-ugc").text();
     }
 
     public static void main(String[] args) {
