@@ -50,12 +50,19 @@ public class PsqlStore implements Store, AutoCloseable {
     @Override
     public void save(Post post) {
         try (PreparedStatement statement = connection.prepareStatement(
-                "insert into post (name, text, link, created) values (?, ?, ?, ?)")) {
+                "insert into post (name, text, link, created)"
+                        + "values (?, ?, ?, ?) on conflict(link) do nothing",
+                Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, post.getName());
             statement.setString(2, post.getText());
             statement.setString(3, post.getLink());
             statement.setTimestamp(4, Timestamp.valueOf(post.getCreated()));
             statement.execute();
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    post.setId(generatedKeys.getInt(1));
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -127,7 +134,7 @@ public class PsqlStore implements Store, AutoCloseable {
             for (Post post : list) {
                 store.save(new Post(post.getName(), post.getText(), post.getLink(), post.getCreated()));
             }
-            System.out.println(store.findById(628));
+            System.out.println(store.findById(888));
         } catch (Exception e) {
             e.printStackTrace();
         }
