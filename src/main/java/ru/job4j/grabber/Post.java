@@ -6,29 +6,30 @@ import java.util.Objects;
 /**
  * Модель Post
  * id идентификатор вакансии (берется из нашей базы данных)
+ * name название
+ * text описание вакансии
  * link ссылка на описание вакансии
- * description описание вакансии
  * created дата создания вакансии
  */
 public class Post {
     private int id;
-    private String title;
+    private String name;
+    private String text;
     private String link;
-    private String description;
     private LocalDateTime created;
 
-    public Post(String title, String link, String description, LocalDateTime created) {
-        this.title = title;
+    public Post(String name, String text, String link, LocalDateTime created) {
+        this.name = name;
+        this.text = text;
         this.link = link;
-        this.description = description;
         this.created = created;
     }
 
-    public Post(int id, String title, String link, String description, LocalDateTime created) {
+    public Post(int id, String name, String text, String link, LocalDateTime created) {
         this.id = id;
-        this.title = title;
+        this.name = name;
+        this.text = text;
         this.link = link;
-        this.description = description;
         this.created = created;
     }
 
@@ -40,12 +41,20 @@ public class Post {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 
     public String getLink() {
@@ -54,14 +63,6 @@ public class Post {
 
     public void setLink(String link) {
         this.link = link;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public LocalDateTime getCreated() {
@@ -93,9 +94,9 @@ public class Post {
     public String toString() {
         return "Post{"
                 + "id=" + id
-                + ", title='" + title + '\''
+                + ", title='" + name + '\''
+                + ", description='" + text + '\''
                 + ", link='" + link + '\''
-                + ", description='" + description + '\''
                 + ", created=" + created
                 + '}';
     }
