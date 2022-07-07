@@ -64,7 +64,7 @@ public class Grabber implements Grab {
             Parse parse = (Parse) map.get("parse");
             List<Post> list = parse.list(PAGE_LINK);
             for (Post post : list) {
-                store.save(new Post(post.getName(), post.getText(), post.getLink(), post.getCreated()));
+                store.save(post);
             }
         }
     }
